@@ -9,7 +9,7 @@ example: http://0.0.0.0:8001/piping => localhost:8888
 (maybe I should say listener, not a server)
 
 ```cmd/client``` make connection to specific piping server.  
-example: http://0.0.0.0:8001/piping => localhost:8888
+example: localhost:8000 => http://0.0.0.0:8001/piping
 
 Usage of server:  
   -h string
