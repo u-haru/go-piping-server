@@ -9,7 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	piping "github.com/u-haru/go-piping-server"
+	piping "github.com/u-haru/go-piping-tunnel"
 )
 
 var (

@@ -1,4 +1,4 @@
-module github.com/u-haru/go-piping-server
+module github.com/u-haru/go-piping-tunnel
 
 go 1.17
 

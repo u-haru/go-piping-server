@@ -1,4 +1,4 @@
-# go-piping-server
+# go-piping-tunnel
 
 ```piping server written by golang```
 
