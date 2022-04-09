@@ -14,27 +14,26 @@ import (
 
 type Client struct {
 	Target string
-	Host   string
 }
 
-func (c *Client) ListenAndServe() (err error) {
-	if c.Host == "" {
-		c.Host = ":80"
+func (c *Client) ListenAndServe(host string) (err error) {
+	if host == "" {
+		host = ":80"
 	}
-	ln, err := net.Listen("tcp", c.Host)
+	ln, err := net.Listen("tcp", host)
 	if err != nil {
 		return
 	}
 	return c.Serve(ln)
 }
 
-func (c *Client) Serve(li net.Listener) (err error) {
+func (c *Client) Serve(li net.Listener) error {
 	if c.Target == "" {
 		return errors.New("target isn't specified")
 	}
 	loc, err := url.ParseRequestURI(c.Target)
 	if err != nil {
-		return
+		return err
 	}
 	r, err := http.NewRequest("PUT", c.Target, nil)
 	if err != nil {
@@ -42,8 +41,7 @@ func (c *Client) Serve(li net.Listener) (err error) {
 	}
 	proxy.RegisterDialerType("http", newHTTPProxy)
 	proxy.RegisterDialerType("https", newHTTPProxy)
-	httpProxyURI, _ := url.Parse("http://localhost:8080")
-	httpDialer, _ := proxy.FromURL(httpProxyURI, Direct)
+	httpDialer := proxy.FromEnvironment()
 	for {
 		cl, err := li.Accept()
 		if err != nil {

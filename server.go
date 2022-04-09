@@ -9,53 +9,26 @@ import (
 )
 
 type Server struct {
-	Path   string
-	Host   string
 	Target string
 
 	http.ServeMux
 }
 
-func (s *Server) ListenAndServe() (err error) {
-	if s.Host == "" {
-		s.Host = ":80"
-	}
-	ln, err := net.Listen("tcp", s.Host)
-	if err != nil {
-		return
-	}
-	return s.Serve(ln)
-}
-
-func (s *Server) Serve(li net.Listener) (err error) {
-	s.HandleFunc(s.Path, s.handle)
-	s.HandleFunc("/", errorp)
-
-	return http.Serve(li, s)
-}
-
-const message = `<!DOCTYPE html>
-<html>
-<head>
-<title>Error</title>
-<style>
-body { width: 96%; margin: 0 auto; }
-</style>
-</head>
+const Error502page = `<!DOCTYPE html>
+<html><head><title>502 Bad Gateway</title></head>
 <body>
-<center><h1>500 Internal Server Error</h1>
-<hr>pipe</center>
-</body>
-</html>`
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx/1.20.2</center>
+</body></html>`
 
-func errorp(w http.ResponseWriter, r *http.Request) {
+func BadGateway(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	w.Header().Set("Content-Length", strconv.Itoa(len(message)))
+	w.Header().Set("Content-Length", strconv.Itoa(len(Error502page)))
 	w.WriteHeader(500)
-	w.Write([]byte(message))
+	w.Write([]byte(Error502page))
 }
 
-func (s *Server) handle(w http.ResponseWriter, r *http.Request) {
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "PUT", "PUSH":
 		{
@@ -85,7 +58,17 @@ func (s *Server) handle(w http.ResponseWriter, r *http.Request) {
 		}
 	default:
 		{
-			errorp(w, r)
+			BadGateway(w, r)
 		}
 	}
+}
+
+func Handler(target string) *Server {
+	return &Server{
+		Target: target,
+	}
+}
+
+func HandleFunc(target string) func(http.ResponseWriter, *http.Request) {
+	return Handler(target).ServeHTTP
 }

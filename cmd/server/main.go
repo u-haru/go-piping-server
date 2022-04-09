@@ -3,42 +3,42 @@ package main
 import (
 	"flag"
 	"log"
+	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
 
-	go_piping_server "github.com/u-haru/go-piping-server"
+	piping "github.com/u-haru/go-piping-server"
 )
 
 var (
-	Host string
+	Host   string
+	Target string
 )
 
 func main() {
-	sv := &go_piping_server.Server{}
 	flag.StringVar(&Host, "h", "http://0.0.0.0:8001/piping", "Listening Address:Port")
-	flag.StringVar(&sv.Target, "t", "127.0.0.1:8888", "Target host")
+	flag.StringVar(&Target, "t", "127.0.0.1:8888", "Target host")
 	flag.Parse()
 
 	loc, err := url.ParseRequestURI(Host)
 	if err != nil {
 		log.Println(err)
-		return
+		os.Exit(-1)
 	}
+	http.Handle(loc.Path, piping.Handler(Target))
+	http.HandleFunc("/", piping.BadGateway)
 
-	sv.Host = loc.Host
-	sv.Path = loc.Path
-
-	log.Println("Server running on " + sv.Host + sv.Path + " to " + sv.Target)
 	go func() {
-		if err := sv.ListenAndServe(); err != nil {
+		log.Println("Server running on " + Host + " to " + Target)
+		if err := http.ListenAndServe(loc.Host, nil); err != nil {
 			log.Println(err)
 			os.Exit(-1)
 		}
 	}()
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
-	log.Printf("Signal %s received, shutting down...\n", (<-quit).String())
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	log.Printf("Signal %s received, shutting down...\n", (<-c).String())
 }
