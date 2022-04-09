@@ -1,6 +1,7 @@
 package go_piping_server
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -8,27 +9,25 @@ import (
 	"strconv"
 )
 
-type Server struct {
-	Target string
+const errpage = `<!DOCTYPE html><html><head><title>%d %s</title></head><body><center><h1>%d %s</h1></center><hr><center>%s</center></body></html>`
 
-	http.ServeMux
+func MakeErrorPage(status int, message, version string) func(http.ResponseWriter, *http.Request) {
+	page := fmt.Sprintf(errpage, status, message, status, message, version)
+	n := strconv.Itoa(len(page))
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		w.Header().Set("Content-Length", n)
+		w.WriteHeader(status)
+		w.Write([]byte(page))
+	}
 }
 
-const Error502page = `<!DOCTYPE html>
-<html><head><title>502 Bad Gateway</title></head>
-<body>
-<center><h1>502 Bad Gateway</h1></center>
-<hr><center>nginx/1.20.2</center>
-</body></html>`
+var BadGateway = MakeErrorPage(502, "Bad Gateway", "nginx/1.20.2")
+var BadRequest = MakeErrorPage(400, "Bad Request", "nginx/1.20.2")
 
-func BadGateway(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	w.Header().Set("Content-Length", strconv.Itoa(len(Error502page)))
-	w.WriteHeader(502)
-	w.Write([]byte(Error502page))
-}
+type Handler string
 
-func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "PUT", "PUSH":
 		{
@@ -37,7 +36,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				BadGateway(w, r)
 				return
 			}
-			sv, err := net.Dial("tcp", s.Target)
+			sv, err := net.Dial("tcp", string(s))
 			if err != nil {
 				log.Println(err)
 				BadGateway(w, r)
@@ -60,14 +59,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	default:
 		{
-			BadGateway(w, r)
+			BadRequest(w, r)
 		}
-	}
-}
-
-func Handler(target string) *Server {
-	return &Server{
-		Target: target,
 	}
 }
 
