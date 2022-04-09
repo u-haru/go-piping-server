@@ -5,11 +5,14 @@
 This is experimental.
 
 ```cmd/server``` hosts http server and make connection to specified address when client requests specific path.  
-example: http://0.0.0.0:8001/piping => localhost:8888  
-(maybe I should say listener, not a server)
+Example: http://0.0.0.0:8001/piping => localhost:8888  
+(Maybe I should say listener, not a server)
 
 ```cmd/client``` make connection to specific piping server.  
-example: localhost:8000 => http://0.0.0.0:8001/piping
+Example: localhost:8000 => http://0.0.0.0:8001/piping
+
+If you want to use proxy,set ALL_PROXY envroiment.  
+Example:```ALL_PROXY=http://localhost:8080 ./client```
 
 Usage of server:  
   -h string
