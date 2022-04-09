@@ -19,14 +19,6 @@ type httpProxy struct {
 	forward  proxy.Dialer
 }
 
-type direct struct{}
-
-var Direct = direct{}
-
-func (direct) Dial(network, addr string) (net.Conn, error) {
-	return net.Dial(network, addr)
-}
-
 func (s *httpProxy) Dial(network, addr string) (net.Conn, error) {
 	c, err := s.forward.Dial("tcp", s.host)
 	if err != nil {

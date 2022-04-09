@@ -40,7 +40,6 @@ func (c *Client) Serve(li net.Listener) error {
 		return err
 	}
 	proxy.RegisterDialerType("http", newHTTPProxy)
-	proxy.RegisterDialerType("https", newHTTPProxy)
 	httpDialer := proxy.FromEnvironment()
 	for {
 		cl, err := li.Accept()
