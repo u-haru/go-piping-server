@@ -10,6 +10,10 @@ import (
 	"golang.org/x/net/proxy"
 )
 
+func init() {
+	proxy.RegisterDialerType("http", newHTTPProxy)
+}
+
 // https://orebibou.com/ja/home/201809/20180902_001/
 type httpProxy struct {
 	host     string

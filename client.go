@@ -37,7 +37,6 @@ func (c Client) Serve(li net.Listener) error {
 	if err != nil {
 		return err
 	}
-	proxy.RegisterDialerType("http", newHTTPProxy)
 	httpDialer := proxy.FromEnvironment()
 	for {
 		cl, err := li.Accept()
