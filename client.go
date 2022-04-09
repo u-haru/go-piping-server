@@ -12,11 +12,9 @@ import (
 	"golang.org/x/net/proxy"
 )
 
-type Client struct {
-	Target string
-}
+type Client string
 
-func (c *Client) ListenAndServe(host string) (err error) {
+func (c Client) ListenAndServe(host string) (err error) {
 	if host == "" {
 		host = ":80"
 	}
@@ -27,15 +25,15 @@ func (c *Client) ListenAndServe(host string) (err error) {
 	return c.Serve(ln)
 }
 
-func (c *Client) Serve(li net.Listener) error {
-	if c.Target == "" {
+func (c Client) Serve(li net.Listener) error {
+	if c == Client("") {
 		return errors.New("target isn't specified")
 	}
-	loc, err := url.ParseRequestURI(c.Target)
+	loc, err := url.ParseRequestURI(string(c))
 	if err != nil {
 		return err
 	}
-	r, err := http.NewRequest("PUT", c.Target, nil)
+	r, err := http.NewRequest("PUT", string(c), nil)
 	if err != nil {
 		return err
 	}

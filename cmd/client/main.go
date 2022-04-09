@@ -10,17 +10,19 @@ import (
 	piping "github.com/u-haru/go-piping-server"
 )
 
-var Host string
+var (
+	Host   string
+	Target string
+)
 
 func main() {
-	cl := &piping.Client{}
 	flag.StringVar(&Host, "h", "0.0.0.0:8000", "Listening Address:Port")
-	flag.StringVar(&cl.Target, "t", "http://127.0.0.1:8001/piping", "Target Path")
+	flag.StringVar(&Target, "t", "http://127.0.0.1:8001/piping", "Target Path")
 	flag.Parse()
 
 	go func() {
-		log.Println("Client running on " + Host + " to " + cl.Target)
-		if err := cl.ListenAndServe(Host); err != nil {
+		log.Println("Client running on " + Host + " to " + Target)
+		if err := piping.Client(Target).ListenAndServe(Host); err != nil {
 			log.Println(err)
 			os.Exit(-1)
 		}
