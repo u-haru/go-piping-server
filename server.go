@@ -24,7 +24,7 @@ const Error502page = `<!DOCTYPE html>
 func BadGateway(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	w.Header().Set("Content-Length", strconv.Itoa(len(Error502page)))
-	w.WriteHeader(500)
+	w.WriteHeader(502)
 	w.Write([]byte(Error502page))
 }
 
@@ -34,17 +34,19 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		{
 			hj, ok := w.(http.Hijacker)
 			if !ok {
-				log.Println("Error")
+				BadGateway(w, r)
 				return
 			}
 			sv, err := net.Dial("tcp", s.Target)
 			if err != nil {
 				log.Println(err)
+				BadGateway(w, r)
 				return
 			}
 			cl, _, err := hj.Hijack()
 			if err != nil {
 				log.Println(err)
+				BadGateway(w, r)
 				return
 			}
 			go func() {
