@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net"
 	"net/http"
 	"strconv"
+
+	"golang.org/x/net/proxy"
 )
 
 const errpage = `<!DOCTYPE html><html><head><title>%d %s</title></head><body><center><h1>%d %s</h1></center><hr><center>%s</center></body></html>`
@@ -22,8 +23,8 @@ func MakeErrorPage(status int, message, version string) func(http.ResponseWriter
 	}
 }
 
-var BadGateway = MakeErrorPage(502, "Bad Gateway", "nginx/1.20.2")
-var BadRequest = MakeErrorPage(400, "Bad Request", "nginx/1.20.2")
+var BadGateway = MakeErrorPage(502, "Bad Gateway", "nginx/1.20.2(piping-tunnel)")
+var BadRequest = MakeErrorPage(400, "Bad Request", "nginx/1.20.2(piping-tunnel)")
 
 type Handler string
 
@@ -36,7 +37,7 @@ func (s Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				BadGateway(w, r)
 				return
 			}
-			sv, err := net.Dial("tcp", string(s))
+			sv, err := proxy.FromEnvironment().Dial("tcp", string(s))
 			if err != nil {
 				log.Println(err)
 				BadGateway(w, r)

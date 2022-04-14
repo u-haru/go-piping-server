@@ -2,6 +2,7 @@ package go_piping_server
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"io"
 	"log"
@@ -37,6 +38,7 @@ func (c Client) Serve(li net.Listener) error {
 	if err != nil {
 		return err
 	}
+	log.Println(loc.Host)
 	httpDialer := proxy.FromEnvironment()
 	for {
 		cl, err := li.Accept()
@@ -51,14 +53,27 @@ func (c Client) Serve(li net.Listener) error {
 				cl.Close()
 				return
 			}
+			if loc.Scheme == "https" {
+				tsv := tls.Client(sv, &tls.Config{InsecureSkipVerify: true})
+				if err := tsv.Handshake(); err != nil {
+					log.Println(err)
+				}
+				sv = tsv
+			}
 			req := r.Clone(context.Background())
 			req.Write(sv)
 			go func() {
-				io.Copy(sv, cl)
+				_, err := io.Copy(sv, cl)
+				if err != nil {
+					log.Println(err)
+				}
 				cl.Close()
 			}()
 			go func() {
-				io.Copy(cl, sv)
+				_, err := io.Copy(cl, sv)
+				if err != nil {
+					log.Println(err)
+				}
 				sv.Close()
 			}()
 		}()
