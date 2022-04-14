@@ -30,7 +30,7 @@ type Handler string
 
 func (s Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
-	case "PUT", "PUSH":
+	case "PUT", "POST":
 		{
 			hj, ok := w.(http.Hijacker)
 			if !ok {

@@ -34,7 +34,7 @@ func (c Client) Serve(li net.Listener) error {
 	if err != nil {
 		return err
 	}
-	r, err := http.NewRequest("PUT", string(c), nil)
+	r, err := http.NewRequest("POST", string(c), nil)
 	if err != nil {
 		return err
 	}
